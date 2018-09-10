@@ -16,9 +16,9 @@ object TwitterConnector{
 
 class TwitterConnector(actor: ActorRef) extends LazyLogging with StatusMapping {
   val twitterStream:TwitterStream = new TwitterStreamFactory().getInstance()
-  addMessageListener
+  addMessageListener()
 
-  def addMessageListener: Unit ={
+  def addMessageListener(): Unit ={
     twitterStream.addListener(new StatusListener(){
 
       import twitter4j.StallWarning
@@ -52,7 +52,7 @@ class TwitterConnector(actor: ActorRef) extends LazyLogging with StatusMapping {
 
   }
 
-  def close: Unit ={
+  def close(): Unit ={
     twitterStream.cleanUp()
     actor ! StreamEnd
   }
