@@ -9,9 +9,10 @@ object TweetAggregator{
 
 
 class TweetAggregator(topic: String) extends Actor with ActorLogging {
-  val AGGREGATIONSIZE = 100
+  val AGGREGATIONSIZE = 20
 
   def router: ActorSelection = context.system.actorSelection("/user/DataRouter")
+
   def consuming(acc: List[TwitterStatus]): Receive = {
     case msg: TwitterStatus =>
       if (acc.size <= AGGREGATIONSIZE) {

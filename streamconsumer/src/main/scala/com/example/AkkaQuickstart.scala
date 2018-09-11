@@ -7,8 +7,8 @@ import com.typesafe.scalalogging.LazyLogging
 object AkkaQuickstart extends App with LazyLogging {
 
   val configuration = ConfigFactory.load()
-  val manager = new PipelineManager(configuration)
-  manager.submitTopic("Scala")
+  val manager = new SystemManager(configuration)
   manager.submitTopic("Python")
-  manager.submitTopic("golang")
+  manager.submitTopic("Scala")
+
 }

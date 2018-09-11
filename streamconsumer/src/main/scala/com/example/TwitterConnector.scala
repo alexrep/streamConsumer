@@ -5,11 +5,8 @@ import akka.actor.ActorRef
 
 
 object TwitterConnector{
-  def apply(filter: String, actor: ActorRef): TwitterConnector = {
-    val connector = new TwitterConnector(actor)
-
-    connector.setFilter(filter)
-    connector
+  def apply(actor: ActorRef): TwitterConnector = {
+    new TwitterConnector(actor)
   }
 }
 
@@ -49,7 +46,6 @@ class TwitterConnector(actor: ActorRef) extends LazyLogging with StatusMapping {
         ex.printStackTrace()
       }
     })
-
   }
 
   def close(): Unit ={
@@ -57,37 +53,10 @@ class TwitterConnector(actor: ActorRef) extends LazyLogging with StatusMapping {
     actor ! StreamEnd
   }
 
-  def start(): Unit ={
-    twitterStream.sample()
-  }
-
-  def setFilter(filter : String): Unit ={
+  def setFilter(filter : Set[String]): Unit ={
     val fq = new FilterQuery()
-    fq.track(filter)
+    fq.track(filter.mkString(","))
     twitterStream.filter(fq)
   }
 
-}
-
-
-trait StatusMapping{
-  def mapStatus(status: Status) = {
-    val user = status.getUser()
-    val tags = status.getText()
-      .split(" ")
-      .filter(s => s.nonEmpty)
-      .filter(s => s.startsWith("#"))
-      .map(s => s.substring(1))
-
-    TwitterStatus(
-      status.getText(),
-      Some(status.getLang()),
-      status.isRetweeted(),
-      status.getRetweetCount(),
-      user.getId(),
-      user.getName(),
-      Some(user.getLocation()),
-      tags
-    )
-  }
 }

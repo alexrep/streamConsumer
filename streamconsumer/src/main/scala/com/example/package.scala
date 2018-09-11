@@ -1,5 +1,7 @@
 package com
 
+import akka.actor.ActorRef
+
 package object example {
   case object StreamEnd
   case object Tick
@@ -16,8 +18,12 @@ package object example {
                             userId: Long,
                             userName: String,
                             userLocation: Option[String],
-                            hashTags: Seq[String]
+                            hashTags: Iterable[String]
                           )
 
   case class AggregatedStatus(topic: String, statuses: Seq[TwitterStatus])
+
+  case class AddPipeline(topic: String, receiver: ActorRef)
+
+  case class RemovePipeline(topic: String)
 }
