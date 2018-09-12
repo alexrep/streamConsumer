@@ -5,6 +5,11 @@ import akka.actor.ActorRef
 package object example {
   case object StreamEnd
   case object Tick
+  type Counters = Map[String, Map[String,Int]]
+
+  case object RequestStatistics
+
+  case class TagCounters(counters: Counters)
 
   case class TopicClosed(topic: String)
 

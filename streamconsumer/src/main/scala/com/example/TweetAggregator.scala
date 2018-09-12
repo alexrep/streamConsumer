@@ -7,7 +7,6 @@ object TweetAggregator{
   def props(topic: String) = Props(new TweetAggregator(topic))
 }
 
-
 class TweetAggregator(topic: String) extends Actor with ActorLogging {
   val AGGREGATIONSIZE = 20
 
@@ -15,7 +14,7 @@ class TweetAggregator(topic: String) extends Actor with ActorLogging {
 
   def consuming(acc: List[TwitterStatus]): Receive = {
     case msg: TwitterStatus =>
-      if (acc.size <= AGGREGATIONSIZE) {
+      if (acc.size < AGGREGATIONSIZE) {
         context.become(consuming(msg :: acc))
       }
       else {

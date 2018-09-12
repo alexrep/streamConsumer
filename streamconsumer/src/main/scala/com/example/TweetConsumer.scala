@@ -7,14 +7,14 @@ object TweetConsumer{
 }
 
 class TweetConsumer(topic: String, aggregator:ActorRef) extends Actor with ActorLogging{
-  def statisticsAggregator: ActorSelection = context.system.actorSelection("/user/statisticsAggregator")
+  //def statisticsAggregator: ActorSelection = context.system.actorSelection("/user/throughputMonitor")
   def consuming(acc:Int): Receive = {
     case msg: TwitterStatus  =>
       aggregator ! msg
       log.debug("received tweet" + msg)
       context.become(consuming(acc+1))
     case Tick =>
-      statisticsAggregator ! ThroughputSlice(topic, acc, System.currentTimeMillis)
+      sender ! ThroughputSlice(topic, acc, System.currentTimeMillis)
       context.become(consuming(0))
 
     case StreamEnd =>

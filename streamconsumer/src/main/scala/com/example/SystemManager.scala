@@ -1,22 +1,19 @@
 package com.example
 import akka.actor.{ActorSystem, Props}
-
 import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 
 
 class SystemManager(configuration: Config) extends LazyLogging{
-  val system: ActorSystem = ActorSystem("TwitterStream")
+  val system: ActorSystem = ActorSystem("TwitterStream", configuration)
 
   var topics = Set.empty[String]
-
   var topicsToAdd = Set.empty[String]
   var topicsToRemove = Set.empty[String]
-
-
 
   initializeInfrastructure(system)
 
@@ -29,17 +26,24 @@ class SystemManager(configuration: Config) extends LazyLogging{
 
 
   def initializeInfrastructure(system: ActorSystem): Unit ={
-    system.actorOf(StatisticsAggregator.props,"statisticsAggregator")
-    system.actorOf(Props[DataRouter],"DataRouter")
+    val actorConfig = configuration.getConfig("actors")
+
+    system.actorOf(ThroughputMonitor.props(actorConfig.getInt("throughputTimeout")),"throughputMonitor")
+    val tagCounter = system.actorOf(Props[TagCounter],"tagCounter")
+    system.actorOf(DataRouter.props(Seq(tagCounter)),"DataRouter")
+    system.actorOf(StatisticsMonitor.props(actorConfig.getInt("statisticsTimeout")),"statisticsMonitor")
   }
 
   def processQueue(): Unit ={
     topicsToRemove.foreach(removeTopic)
     topicsToAdd.foreach(addTopic)
-    topics = topics ++ topicsToAdd -- topicsToRemove
-    twitterSource.setFilter(topics)
-    topicsToRemove = Set.empty[String]
-    topicsToAdd = Set.empty[String]
+
+    if (topicsToRemove.nonEmpty || topicsToAdd.nonEmpty ){
+      topics = topics ++ topicsToAdd -- topicsToRemove
+      twitterSource.setFilter(topics)
+      topicsToRemove = Set.empty[String]
+      topicsToAdd = Set.empty[String]
+    }
   }
 
   private def addTopic(topic: String): Unit ={
@@ -56,6 +60,5 @@ class SystemManager(configuration: Config) extends LazyLogging{
   def unsubmitTopic(topic: String): Unit ={
     topicsToRemove = topicsToRemove + topic
   }
-
 
 }

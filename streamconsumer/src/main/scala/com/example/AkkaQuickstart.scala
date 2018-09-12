@@ -10,5 +10,8 @@ object AkkaQuickstart extends App with LazyLogging {
   val manager = new SystemManager(configuration)
   manager.submitTopic("Python")
   manager.submitTopic("Scala")
+  manager.submitTopic("GBBO")
 
+  manager.submitTopic("Trump")
+  manager.submitTopic("StupidQuestionsAtWalmart")
 }
