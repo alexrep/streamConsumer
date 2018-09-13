@@ -10,6 +10,7 @@ import scala.concurrent.duration._
 
 class SystemManager(configuration: Config) extends LazyLogging{
   val system: ActorSystem = ActorSystem("TwitterStream", configuration)
+  val actorConfig = configuration.getConfig("actors")
 
   var topics = Set.empty[String]
   var topicsToAdd = Set.empty[String]
@@ -18,7 +19,7 @@ class SystemManager(configuration: Config) extends LazyLogging{
   initializeInfrastructure(system)
 
   val twitterSource:SourceStream = new TwitterSource(system)
-  val pipelineManager = new PipelineManager(twitterSource, system)
+  val pipelineManager = new PipelineManager(twitterSource, system, actorConfig)
 
   private val twitterTimeout = 40 seconds
 
@@ -26,11 +27,10 @@ class SystemManager(configuration: Config) extends LazyLogging{
 
 
   def initializeInfrastructure(system: ActorSystem): Unit ={
-    val actorConfig = configuration.getConfig("actors")
-
     system.actorOf(ThroughputMonitor.props(actorConfig.getInt("throughputTimeout")),"throughputMonitor")
     val tagCounter = system.actorOf(Props[TagCounter],"tagCounter")
-    system.actorOf(DataRouter.props(Seq(tagCounter)),"DataRouter")
+    val userCounter = system.actorOf(Props[UserCounter],"userCounter")
+    system.actorOf(DataRouter.props(Seq(tagCounter, userCounter)),"DataRouter")
     system.actorOf(StatisticsMonitor.props(actorConfig.getInt("statisticsTimeout")),"statisticsMonitor")
   }
 

@@ -24,6 +24,6 @@ class ThroughputMonitor(rawInterval :Int) extends Actor with ActorLogging with T
   }
 
   override def receive: Receive  = {
-    case ThroughputSlice(topic, count, timestamp) => log.info(s" for $topic received $count")
+    case ThroughputSlice(topic, count, timestamp) => println(s"$topic : $count")
   }
 }

@@ -4,21 +4,18 @@ import akka.actor.{Actor, ActorLogging, ActorSelection, PoisonPill, Props}
 
 
 object TweetAggregator{
-  def props(topic: String) = Props(new TweetAggregator(topic))
+  def props(topic: String, aggregationChunkSize:Int) = Props(new TweetAggregator(topic, aggregationChunkSize))
 }
 
-class TweetAggregator(topic: String) extends Actor with ActorLogging {
-  val AGGREGATIONSIZE = 20
-
+class TweetAggregator(topic: String, aggregationChunkSize:Int) extends Actor with ActorLogging {
   def router: ActorSelection = context.system.actorSelection("/user/DataRouter")
 
   def consuming(acc: List[TwitterStatus]): Receive = {
     case msg: TwitterStatus =>
-      if (acc.size < AGGREGATIONSIZE) {
+      if (acc.size < aggregationChunkSize) {
         context.become(consuming(msg :: acc))
       }
       else {
-        log.info(s"sending next $AGGREGATIONSIZE to router")
         router ! AggregatedStatus(topic, acc)
         context.become(consuming(msg :: Nil))
       }

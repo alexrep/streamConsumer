@@ -1,9 +1,10 @@
 package com.example
 
 import akka.actor.{ActorRef, ActorSystem}
+import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 
-class PipelineManager(source:SourceStream, system: ActorSystem) extends LazyLogging {
+class PipelineManager(source:SourceStream, system: ActorSystem, configuration: Config) extends LazyLogging {
   def addTopicPipeline(topic: String): Unit ={
     val twitConsumer = createPartialPipeline(topic, system)
     source.subscribePipeline(topic, twitConsumer)
@@ -16,7 +17,7 @@ class PipelineManager(source:SourceStream, system: ActorSystem) extends LazyLogg
   }
 
   def createPartialPipeline(topic: String, system: ActorSystem): ActorRef ={
-    val aggregator: ActorRef = system.actorOf(TweetAggregator.props(topic),s"$topic-aggregator")
+    val aggregator: ActorRef = system.actorOf(TweetAggregator.props(topic, configuration.getInt("aggregationChunkSize")),s"$topic-aggregator")
     system.actorOf(TweetConsumer.props(topic, aggregator), s"$topic-consumer")
   }
 }
